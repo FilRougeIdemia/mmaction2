@@ -144,20 +144,19 @@ def confusion_matrix(y_pred, y_real, normalize=None):
             f'y_real dtype must be np.int64, but got {y_real.dtype}')
     cm = metrics.confusion_matrix(y_real, y_pred)
 
-    # create confusion matrix
+    '''# create confusion matrix
     class_names = ['pick up', 'throw', 'sit down', 'stand up',
                    'take off jacket', 'reach into pocket', 'point to something', 
                    'check time (from watch)', 'fall down', 'grab bag', 'hold bag',
                    'leave bag', 'put something into bag', 'put on bag', 'take off bag',
                    'take something out of bag']
-    confusion_mat = sns.heatmap(cm, annot=True, cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    confusion_mat = sns.heatmap(cm, annot=True, cmap='Blues', xticklabels=class_names, yticklabels=class_names)'''
     
     # calculate f1, precision and recall
-    f1 = metrics.f1_score(y_real, y_pred, average=None)
-    precision = metrics.precision_score(y_real, y_pred, average=None)
-    recall = metrics.recall_score(y_real, y_pred, average=None)
+    precision, recall, f1, _ = metrics.precision_recall_fscore_support(
+        y_real, y_pred, labels=np.arange(16), average=None, zero_division=0)
 
-    return confusion_mat, f1, precision, recall
+    return cm, f1, precision, recall
 
 
 def mean_class_accuracy(scores, labels):
@@ -239,7 +238,20 @@ def top_k_accuracy(scores, labels, topk=(1, )):
         match_array = np.logical_or.reduce(max_k_preds == labels, axis=1)
         topk_acc_score = match_array.sum() / match_array.shape[0]
         res.append(topk_acc_score)
+    
+    # added below to calculate topk accuracy per class:
+    '''num_classes = len(scores)
+    res_ = [[] for _ in range(num_classes)]
+    labels = np.array(labels)[:, np.newaxis]
 
+    for k in topk:
+        max_k_preds = np.argsort(scores, axis=1)[:, -k:][:, ::-1]
+        match_array = np.logical_or.reduce(max_k_preds == labels, axis=1)
+        for c in range(num_classes):
+            class_mask = (labels == c)
+            class_match_array = match_array[class_mask]
+            class_topk_acc_score = class_match_array.sum() / class_match_array.shape[0]
+            res_[c].append(class_topk_acc_score)'''
     return res
 
 
